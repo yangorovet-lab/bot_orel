@@ -29,7 +29,7 @@ TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
 FROM_NAME = os.environ.get("FROM_STATION", "ОРЕЛ")
 TO_NAME = os.environ.get("TO_STATION", "МОСКВА")
-FROM_CODE = os.environ.get("FROM_CODE", "")  # код станции Экспресс-3, если пусто — ищем по имени
+FROM_CODE = os.environ.get("FROM_CODE", "2000140")  # Орёл; если пусто — ищем по имени
 TO_CODE = os.environ.get("TO_CODE", "2000000")  # 2000000 = Москва (все вокзалы)
 DATES = os.environ.get("DATES", "")  # 2026-10-15,2026-10-16 или пусто = ближайшие DAYS_AHEAD дней
 DAYS_AHEAD = int(os.environ.get("DAYS_AHEAD", "3"))

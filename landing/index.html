@@ -1,0 +1,240 @@
+<title>Орёл ⇄ Москва</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tektur:wght@500;700&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one column. Hero with the search form, a ticket-stub card with route facts, then tips. */
+:root {
+  --bg: #eef2f6;
+  --paper: #ffffff;
+  --ink: #14233a;
+  --muted: #5a6b82;
+  --line: #d3dce7;
+  --accent: #e2611b;
+  --accent-ink: #ffffff;
+  --chip: #e2e9f1;
+  --display: "Tektur", "Golos Text", system-ui, sans-serif;
+  --body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1724; --paper: #18233a; --ink: #e8eef6; --muted: #9aabc2;
+    --line: #2a3a55; --accent: #ff8a3d; --accent-ink: #1a0e05; --chip: #22314d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1724; --paper: #18233a; --ink: #e8eef6; --muted: #9aabc2;
+  --line: #2a3a55; --accent: #ff8a3d; --accent-ink: #1a0e05; --chip: #22314d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 16px; line-height: 1.55;
+  padding-inline: 16px; padding-block: 0 48px;
+}
+.wrap { max-width: 880px; margin: 0 auto; display: grid; gap: 56px; }
+header { display: flex; justify-content: space-between; align-items: center; padding-block: 20px; }
+.logo { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: .02em; }
+.logo span { color: var(--accent); }
+.tag { font-size: 13px; color: var(--muted); }
+
+h1 {
+  font-family: var(--display); font-weight: 700;
+  font-size: clamp(34px, 7vw, 60px); line-height: 1.05; margin: 0;
+  text-wrap: balance;
+}
+.lead { font-size: 19px; color: var(--muted); max-width: 34em; margin: 16px 0 0; }
+
+.search {
+  margin-top: 32px; background: var(--paper); border: 1px solid var(--line);
+  border-radius: 14px; padding: 24px; display: grid; gap: 20px;
+}
+.route { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.city { font-family: var(--display); font-size: 26px; font-weight: 500; min-width: 0; }
+.swap {
+  border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+  border-radius: 999px; width: 44px; height: 44px; font-size: 20px; cursor: pointer;
+  display: grid; place-items: center; transition: transform .25s;
+}
+.swap:hover { transform: rotate(180deg); }
+.label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+.dates { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip {
+  border: 1px solid transparent; background: var(--chip); color: var(--ink);
+  border-radius: 999px; padding: 8px 14px; font: 500 15px var(--body); cursor: pointer;
+}
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: transparent; }
+input[type="date"] {
+  font: 500 15px var(--mono); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px;
+}
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+  background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 17px;
+  padding: 14px 22px; border-radius: 10px;
+}
+.btn:hover { filter: brightness(1.06); }
+.link { color: var(--ink); font-weight: 500; }
+.hint { font-size: 14px; color: var(--muted); margin: 0; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ticket stub */
+.stub {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  display: grid; grid-template-columns: 1fr auto; overflow: hidden;
+}
+.stub-main { padding: 24px; display: grid; gap: 18px; min-width: 0; }
+.stub-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px; }
+.k { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.v { font-family: var(--mono); font-size: 20px; font-variant-numeric: tabular-nums; }
+.stub-side {
+  border-left: 2px dashed var(--line); padding: 24px 20px; display: grid; place-items: center;
+  font-family: var(--mono); font-size: 13px; color: var(--muted); writing-mode: vertical-rl;
+  letter-spacing: .15em; text-transform: uppercase;
+}
+
+h2 { font-family: var(--display); font-weight: 500; font-size: 28px; margin: 0 0 20px; text-wrap: balance; }
+.tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+.tip { display: grid; gap: 6px; align-content: start; }
+.tip h3 { margin: 0; font-size: 18px; }
+.tip p { margin: 0; color: var(--muted); }
+.soon {
+  justify-self: start; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 2px 10px;
+}
+footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 20px; }
+
+@media (max-width: 520px) {
+  .stub { grid-template-columns: 1fr; }
+  .stub-side { writing-mode: horizontal-tb; border-left: 0; border-top: 2px dashed var(--line); padding: 14px; }
+  .search { padding: 18px; }
+  .city { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .swap { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="logo">Орёл <span>⇄</span> Москва</div>
+    <div class="tag">поиск билетов на поезд</div>
+  </header>
+
+  <section>
+    <h1>Билеты на поезд Орёл — Москва в два клика</h1>
+    <p class="lead">Выбери дату, и мы откроем поиск на сайте РЖД сразу с нужным маршрутом. Не нужно вбивать города и листать календарь.</p>
+
+    <form class="search" id="search" onsubmit="return false">
+      <div class="route">
+        <span class="city" id="from">Орёл</span>
+        <button type="button" class="swap" id="swap" aria-label="Поменять направление">⇄</button>
+        <span class="city" id="to">Москва</span>
+      </div>
+
+      <div>
+        <span class="label">Дата отправления</span>
+        <div class="dates" id="chips">
+          <input type="date" id="date" aria-label="Выбрать дату">
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn" id="go" href="#" target="_blank" rel="noopener">Показать поезда на РЖД →</a>
+        <a class="link" id="yandex" href="#" target="_blank" rel="noopener">или расписание в Яндексе</a>
+      </div>
+      <p class="hint" id="summary"></p>
+    </form>
+  </section>
+
+  <section class="stub" aria-label="О маршруте">
+    <div class="stub-main">
+      <div class="stub-row">
+        <div><div class="k">Расстояние</div><div class="v">≈ 380 км</div></div>
+        <div><div class="k">В пути</div><div class="v">от 3,5 ч</div></div>
+        <div><div class="k">В Москве</div><div class="v">Курский вокзал</div></div>
+      </div>
+      <p class="hint">Время и вокзал зависят от поезда: точные данные всегда показывает поиск РЖД.</p>
+    </div>
+    <div class="stub-side">Орёл · 2000140 → Москва · 2000000</div>
+  </section>
+
+  <section>
+    <h2>Как поймать билет, если всё раскуплено</h2>
+    <div class="tips">
+      <div class="tip">
+        <h3>Ловите возвраты</h3>
+        <p>Люди сдают билеты, и места снова появляются в продаже. Чаще всего это происходит за сутки и за несколько часов до отправления.</p>
+      </div>
+      <div class="tip">
+        <h3>Смотрите все вагоны</h3>
+        <p>Если купе кончились, могут остаться сидячие места, плацкарт или СВ. Поиск РЖД показывает их все сразу.</p>
+      </div>
+      <div class="tip">
+        <span class="soon">Скоро</span>
+        <h3>Уведомления в Telegram</h3>
+        <p>Бот будет сам проверять места каждые 5–10 минут и пришлёт ссылку, как только билет появится.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Неофициальный сайт. Билеты продаются только на сайте и в приложении РЖД, мы просто открываем поиск с нужными параметрами.</footer>
+</div>
+
+<script>
+(function () {
+  var CODES = { "Орёл": "2000140", "Москва": "2000000" };
+  var from = "Орёл", to = "Москва";
+  var dateEl = document.getElementById("date");
+  var chipsEl = document.getElementById("chips");
+  var DAYS = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+  var MONTHS = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+
+  function iso(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function addDays(n) { var d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + n); return d; }
+
+  var today = addDays(0);
+  dateEl.min = iso(today);
+  dateEl.value = iso(addDays(1));
+
+  var quick = [["Сегодня", 0], ["Завтра", 1], ["Послезавтра", 2]];
+  // ближайшие пятница и воскресенье — самые частые даты поездок
+  [5, 0].forEach(function (wd) {
+    var n = (wd - today.getDay() + 7) % 7;
+    if (n > 2) quick.push([wd === 5 ? "Пятница" : "Воскресенье", n]);
+  });
+  quick.forEach(function (q) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = q[0];
+    b.dataset.date = iso(addDays(q[1]));
+    b.addEventListener("click", function () { dateEl.value = b.dataset.date; update(); });
+    chipsEl.insertBefore(b, dateEl);
+  });
+
+  function update() {
+    var v = dateEl.value || iso(addDays(1));
+    var d = new Date(v + "T12:00:00");
+    document.getElementById("from").textContent = from;
+    document.getElementById("to").textContent = to;
+    document.getElementById("go").href =
+      "https://ticket.rzd.ru/searchresults/v/1/" + CODES[from] + "/" + CODES[to] + "/" + v;
+    document.getElementById("yandex").href =
+      "https://rasp.yandex.ru/search/train/?fromName=" + encodeURIComponent(from) +
+      "&toName=" + encodeURIComponent(to) + "&when=" + v;
+    document.getElementById("summary").textContent =
+      from + " → " + to + ", " + d.getDate() + " " + MONTHS[d.getMonth()] + " (" + DAYS[d.getDay()] + ")";
+    chipsEl.querySelectorAll(".chip").forEach(function (c) {
+      c.setAttribute("aria-pressed", c.dataset.date === v ? "true" : "false");
+    });
+  }
+
+  document.getElementById("swap").addEventListener("click", function () {
+    var t = from; from = to; to = t; update();
+  });
+  dateEl.addEventListener("change", update);
+  update();
+})();
+</script>
