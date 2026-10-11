@@ -6,6 +6,8 @@ on:
 concurrency: check-tickets
 jobs:
   check:
+    # включается переменной репозитория ENABLE_CHECK=true (Settings → Variables)
+    if: ${{ vars.ENABLE_CHECK == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

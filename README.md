@@ -1,5 +1,15 @@
 # Билеты Орёл → Москва: ловец свободных мест
 
+## Лендинг
+`landing/index.html` — страница быстрого поиска: выбираешь дату, и она открывает поиск РЖД с готовым маршрутом.
+Публикуется на GitHub Pages workflow-ом `deploy-landing`: **https://yangorovet-lab.github.io/bot_orel/**
+(один раз включи Settings → Pages → Source: **GitHub Actions**).
+
+Тесты: `python -m unittest discover -s tests` (бот) и `npm install && npm test` (лендинг в Chromium).
+Workflow `tests` на каждый push гоняет оба набора и живую проверку РЖД с серверов GitHub.
+
+---
+
 Скрипт раз в 5–10 минут проверяет поезда РЖД из Орла в Москву на нужные даты. Когда появляются свободные места, он шлёт в Telegram сообщение: поезд, время, тип вагона, сколько мест, цена и ссылка на покупку.
 
 ## 1. Telegram-бот (2 минуты)
@@ -23,7 +33,7 @@ docker run -d --restart=always --env-file .env -v $PWD/data:/app/data orel-ticke
 ```
 
 ## 3. Вариант без сервера: GitHub Actions
-Workflow `.github/workflows/check.yml` запускает проверку по крону `*/5`.
+Workflow `.github/workflows/check.yml` запускает проверку по крону `*/5`. По умолчанию он выключен: включи переменную `ENABLE_CHECK=true`.
 - Settings → Secrets → Actions: добавь `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID`.
 - Settings → Variables: `DATES` (например `2026-10-17,2026-10-18`), при желании `CAR_TYPES`, `TRAINS`, `MAX_PRICE`.
 

@@ -1,0 +1,54 @@
+name: tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+
+  landing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+
+  # Живая проверка: отвечает ли РЖД серверам GitHub. Не валит сборку, только сообщает.
+  rzd-live:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - name: Ссылка с лендинга открывается
+        run: |
+          D=$(date -d tomorrow +%F)
+          curl -sS -L -o /dev/null -m 30 -A "Mozilla/5.0" \
+            -w "HTTP %{http_code} -> %{url_effective}\n" \
+            "https://ticket.rzd.ru/searchresults/v/1/2000140/2000000/$D"
+      - name: Код станции Орёл и поиск поездов на завтра
+        run: |
+          python - <<'PY'
+          from datetime import date, timedelta
+          import bot
+          print("Подсказка РЖД для «ОРЕЛ»:", bot.find_station("ОРЕЛ"))
+          d = date.today() + timedelta(days=1)
+          trains = bot.search("2000140", "2000000", d)
+          print(f"{d}: найдено поездов {len(trains)}")
+          for t in trains:
+              cars = ", ".join(f"{c['type']}:{c['seats']}" for c in t["cars"]) or "мест нет"
+              print(f"  {t['train']} {t['dep'][11:16]}→{t['arr'][11:16]}  {cars}")
+          assert trains, "РЖД вернул пустой список"
+          PY
