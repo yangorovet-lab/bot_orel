@@ -24,6 +24,7 @@ jobs:
       - run: npm test
 
   # Живая проверка: отвечает ли РЖД серверам GitHub. Не валит сборку, только сообщает.
+  # На 11.10.2026 РЖД не отвечает зарубежным IP GitHub (таймаут), поэтому бот нужно запускать с российского IP.
   rzd-live:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -39,6 +40,7 @@ jobs:
             -w "HTTP %{http_code} -> %{url_effective}\n" \
             "https://ticket.rzd.ru/searchresults/v/1/2000140/2000000/$D"
       - name: Код станции Орёл и поиск поездов на завтра
+        if: always()
         run: |
           python - <<'PY'
           from datetime import date, timedelta
