@@ -12,6 +12,7 @@
   --accent: #e2611b;
   --accent-ink: #ffffff;
   --chip: #e2e9f1;
+  --ok: #1d7a46;
   --display: "Tektur", "Golos Text", system-ui, sans-serif;
   --body: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -19,13 +20,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f1724; --paper: #18233a; --ink: #e8eef6; --muted: #9aabc2;
-    --line: #2a3a55; --accent: #ff8a3d; --accent-ink: #1a0e05; --chip: #22314d;
+    --line: #2a3a55; --accent: #ff8a3d; --accent-ink: #1a0e05; --chip: #22314d; --ok: #5fd08e;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1724; --paper: #18233a; --ink: #e8eef6; --muted: #9aabc2;
-  --line: #2a3a55; --accent: #ff8a3d; --accent-ink: #1a0e05; --chip: #22314d;
+  --line: #2a3a55; --accent: #ff8a3d; --accent-ink: #1a0e05; --chip: #22314d; --ok: #5fd08e;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -81,6 +82,34 @@ input[type="date"] {
 .hint { font-size: 14px; color: var(--muted); margin: 0; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
+/* results */
+.results { display: grid; gap: 12px; margin-top: 28px; }
+.res-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.res-title { font-family: var(--display); font-weight: 500; font-size: 22px; margin: 0; }
+.res-meta { display: flex; gap: 12px; align-items: center; font-size: 14px; color: var(--muted); }
+.refresh {
+  border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px;
+  padding: 4px 12px; font: 500 14px var(--body); cursor: pointer;
+}
+.train {
+  display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr) auto; gap: 16px; align-items: center;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+  color: var(--ink); text-decoration: none; transition: border-color .15s;
+}
+.train:hover { border-color: var(--accent); }
+.times { font-family: var(--mono); font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sub { font-size: 14px; color: var(--muted); }
+.cars { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.car { background: var(--chip); border-radius: 8px; padding: 5px 10px; font-size: 14px; white-space: nowrap; }
+.car b { font-weight: 600; }
+.car .seats { color: var(--ok); font-weight: 600; font-variant-numeric: tabular-nums; }
+.pick { color: var(--accent); font-weight: 600; white-space: nowrap; }
+.state { background: var(--paper); border: 1px dashed var(--line); border-radius: 12px; padding: 22px; display: grid; gap: 8px; }
+.state h3 { margin: 0; font-size: 18px; }
+.state p { margin: 0; color: var(--muted); }
+.skeleton { height: 76px; border-radius: 12px; background: var(--chip); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .55; } }
+
 /* ticket stub */
 .stub {
   background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
@@ -113,7 +142,10 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   .search { padding: 18px; }
   .city { font-size: 22px; }
 }
-@media (prefers-reduced-motion: reduce) { .swap { transition: none; } }
+@media (max-width: 640px) {
+  .train { grid-template-columns: 1fr; gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .swap, .train { transition: none; } .skeleton { animation: none; } }
 </style>
 
 <div class="wrap">
@@ -123,8 +155,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
   </header>
 
   <section>
-    <h1>Билеты на поезд Орёл — Москва в два клика</h1>
-    <p class="lead">Выбери дату, и мы откроем поиск на сайте РЖД сразу с нужным маршрутом. Не нужно вбивать города и листать календарь.</p>
+    <h1>Свободные места на поезд Орёл — Москва</h1>
+    <p class="lead">Показываем только места, которые можно купить прямо сейчас, без листа ожидания. Выбери поезд и переходи на РЖД оформлять билет.</p>
 
     <form class="search" id="search" onsubmit="return false">
       <div class="route">
@@ -140,12 +172,22 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         </div>
       </div>
 
-      <div class="actions">
-        <a class="btn" id="go" href="#" target="_blank" rel="noopener">Показать поезда на РЖД →</a>
-        <a class="link" id="yandex" href="#" target="_blank" rel="noopener">или расписание в Яндексе</a>
-      </div>
-      <p class="hint" id="summary"></p>
     </form>
+
+    <div class="results" aria-live="polite">
+      <div class="res-head">
+        <h2 class="res-title" id="summary"></h2>
+        <div class="res-meta">
+          <span id="updated"></span>
+          <button type="button" class="refresh" id="refresh">Обновить</button>
+        </div>
+      </div>
+      <div id="list"></div>
+      <div class="actions">
+        <a class="link" id="go" href="#" target="_blank" rel="noopener">Все поезда на этот день на сайте РЖД</a>
+        <a class="link" id="yandex" href="#" target="_blank" rel="noopener">Расписание в Яндексе</a>
+      </div>
+    </div>
   </section>
 
   <section class="stub" aria-label="О маршруте">
@@ -168,8 +210,8 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
         <p>Люди сдают билеты, и места снова появляются в продаже. Чаще всего это происходит за сутки и за несколько часов до отправления.</p>
       </div>
       <div class="tip">
-        <h3>Смотрите все вагоны</h3>
-        <p>Если купе кончились, могут остаться сидячие места, плацкарт или СВ. Поиск РЖД показывает их все сразу.</p>
+        <h3>Обновляйте список</h3>
+        <p>Данные берём у РЖД при каждом открытии и не старше минуты. Нажмите «Обновить», чтобы проверить снова.</p>
       </div>
       <div class="tip">
         <span class="soon">Скоро</span>
@@ -179,12 +221,17 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
     </div>
   </section>
 
-  <footer>Неофициальный сайт. Билеты продаются только на сайте и в приложении РЖД, мы просто открываем поиск с нужными параметрами.</footer>
+  <footer>Неофициальный сайт. Наличие мест берём из открытых данных РЖД, а билеты продаются только на сайте и в приложении РЖД.</footer>
 </div>
 
 <script>
 (function () {
   var CODES = { "Орёл": "2000140", "Москва": "2000000" };
+  // Адрес API. Подставляется при сборке (scripts/build_landing.sh); пусто — тот же сервер.
+  var API_URL = "__API_URL__";
+  if (!API_URL || API_URL.indexOf("__") === 0) API_URL = "/api/trains";
+  var listEl = document.getElementById("list");
+  var pending = null;
   var from = "Орёл", to = "Москва";
   var dateEl = document.getElementById("date");
   var chipsEl = document.getElementById("chips");
@@ -225,11 +272,112 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line)
       "https://rasp.yandex.ru/search/train/?fromName=" + encodeURIComponent(from) +
       "&toName=" + encodeURIComponent(to) + "&when=" + v;
     document.getElementById("summary").textContent =
-      from + " → " + to + ", " + d.getDate() + " " + MONTHS[d.getMonth()] + " (" + DAYS[d.getDay()] + ")";
+      from + " → " + to + ", " + d.getDate() + " " + MONTHS[d.getMonth()] + ", " + DAYS[d.getDay()];
     chipsEl.querySelectorAll(".chip").forEach(function (c) {
       c.setAttribute("aria-pressed", c.dataset.date === v ? "true" : "false");
     });
+    load(v);
   }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function plural(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+    return many;
+  }
+  function duration(dep, arr) {
+    var min = Math.round((new Date(arr) - new Date(dep)) / 60000);
+    if (!(min > 0)) return "";
+    var h = Math.floor(min / 60), m = min % 60;
+    return (h ? h + " ч " : "") + (m ? m + " мин" : "").trim();
+  }
+  function carName(t) {
+    t = (t || "").toLowerCase();
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+  var rub = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
+
+  function showState(title, text, withLink) {
+    listEl.replaceChildren();
+    var box = el("div", "state");
+    box.append(el("h3", null, title), el("p", null, text));
+    if (withLink) {
+      var a = el("a", "btn", "Открыть поиск на РЖД →");
+      a.href = document.getElementById("go").href; a.target = "_blank"; a.rel = "noopener";
+      a.style.justifySelf = "start";
+      box.append(a);
+    }
+    listEl.append(box);
+  }
+
+  function render(data) {
+    var trains = data.trains || [];
+    var upd = data.updated ? new Date(data.updated) : null;
+    document.getElementById("updated").textContent =
+      upd && !isNaN(upd) ? "обновлено в " + upd.toTimeString().slice(0, 5) : "";
+    if (!trains.length) {
+      showState("Свободных мест нет",
+        "Все поезда на эту дату раскуплены или продаются только через лист ожидания. Загляните позже: билеты сдают, особенно за сутки до отправления.",
+        false);
+      return;
+    }
+    listEl.replaceChildren();
+    var count = el("p", "sub", trains.length + " " + plural(trains.length, "поезд", "поезда", "поездов") + " со свободными местами");
+    listEl.append(count);
+    var wrap = el("div"); wrap.style.display = "grid"; wrap.style.gap = "10px";
+    trains.forEach(function (t) {
+      var a = el("a", "train");
+      a.href = data.buy_url || document.getElementById("go").href;
+      a.target = "_blank"; a.rel = "noopener";
+      a.setAttribute("aria-label", "Поезд " + t.train + ", отправление " + t.dep.slice(11, 16) + ", выбрать на РЖД");
+      var left = el("div");
+      left.append(el("div", "times", t.dep.slice(11, 16) + " → " + t.arr.slice(11, 16)));
+      left.append(el("div", "sub", [duration(t.dep, t.arr), t.train, t.name].filter(Boolean).join(" · ")));
+      var cars = el("div", "cars");
+      t.cars.forEach(function (c) {
+        var chip = el("span", "car");
+        chip.append(el("b", null, carName(c.type) + " "));
+        chip.append(el("span", "seats", c.seats + " " + plural(c.seats, "место", "места", "мест")));
+        if (c.price) chip.append(document.createTextNode(" · от " + rub.format(c.price) + " ₽"));
+        cars.append(chip);
+      });
+      a.append(left, cars, el("span", "pick", "Выбрать на РЖД →"));
+      wrap.append(a);
+    });
+    listEl.append(wrap);
+  }
+
+  function load(v) {
+    if (pending) pending.abort();
+    var ctrl = pending = new AbortController();
+    listEl.replaceChildren(el("div", "skeleton"), el("div", "skeleton"), el("div", "skeleton"));
+    document.getElementById("updated").textContent = "загружаем…";
+    var url = API_URL + (API_URL.indexOf("?") < 0 ? "?" : "&") +
+      "from=" + CODES[from] + "&to=" + CODES[to] + "&date=" + v;
+    fetch(url, { signal: ctrl.signal })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          if (!r.ok) throw new Error(j.error || "Сервер ответил ошибкой " + r.status);
+          return j;
+        });
+      })
+      .then(function (data) { if (pending === ctrl) render(data); })
+      .catch(function (e) {
+        if (e.name === "AbortError" || pending !== ctrl) return;
+        document.getElementById("updated").textContent = "";
+        showState("Не получилось загрузить места",
+          (e.message && e.message.indexOf("fetch") < 0 ? e.message + ". " : "Сервер с данными о местах сейчас недоступен. ") +
+          "Посмотрите поезда прямо на сайте РЖД.", true);
+      });
+  }
+
+  document.getElementById("refresh").addEventListener("click", function () { load(dateEl.value); });
 
   document.getElementById("swap").addEventListener("click", function () {
     var t = from; from = to; to = t; update();

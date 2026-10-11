@@ -1,12 +1,38 @@
 # Билеты Орёл → Москва: ловец свободных мест
 
-## Лендинг
-`landing/index.html` — страница быстрого поиска: выбираешь дату, и она открывает поиск РЖД с готовым маршрутом.
-Публикуется на GitHub Pages workflow-ом `deploy-landing`: **https://yangorovet-lab.github.io/bot_orel/**
-(один раз включи Settings → Pages → Source: **GitHub Actions**).
+## Сайт со свободными местами
+Страница показывает поезда Орёл ⇄ Москва, где места можно купить прямо сейчас (без листа ожидания).
+По клику на поезд открывается поиск РЖД на эту дату.
 
-Тесты: `python -m unittest discover -s tests` (бот) и `npm install && npm test` (лендинг в Chromium).
-Workflow `tests` на каждый push гоняет оба набора и живую проверку РЖД с серверов GitHub.
+Как устроено:
+- `landing/index.html` — страница. Места она берёт у API по адресу `API_URL`.
+- `rzd.py` — запросы к РЖД и фильтр: показываем только группы вагонов, где мест больше нуля и продажа открыта.
+- `server.py` — сайт и API `/api/trains?from=2000140&to=2000000&date=ГГГГ-ММ-ДД` в одном. Кэш 60 секунд,
+  разрешены только Орёл и Москва, поэтому чужим прокси к РЖД сервер стать не может.
+- `yandex_function.py` — то же API в виде функции Yandex Cloud.
+
+**API должен работать с российского IP.** РЖД не отвечает зарубежным серверам: GitHub Actions проверял это 11.10.2026.
+
+### Вариант А: свой сервер или VPS в России (всё в одном)
+```bash
+pip install -r requirements.txt
+python server.py 8080        # открой http://адрес-сервера:8080/
+# или: docker build -t orel-tickets . && docker run -d --restart=always -p 8080:8080 orel-tickets
+```
+
+### Вариант Б: страница на GitHub Pages + бесплатная функция Yandex Cloud
+1. В [Yandex Cloud](https://console.yandex.cloud) создай Cloud Functions → «Создать функцию», отметь «Публичная».
+2. Редактор: среда **Python 3.12**, способ — ZIP-архив из файлов `rzd.py`, `yandex_function.py`, `requirements.txt`.
+   Точка входа: `yandex_function.handler`, таймаут 30 с, память 128 МБ.
+3. Скопируй ссылку вызова функции (`https://functions.yandexcloud.net/...`).
+4. В GitHub: Settings → Secrets and variables → Actions → Variables → `API_URL` = эта ссылка.
+5. Actions → deploy-landing → Run workflow. Сайт: **https://yangorovet-lab.github.io/bot_orel/**
+
+Пока `API_URL` не задан, на GitHub Pages страница показывает «Не получилось загрузить места» и кнопку на РЖД.
+
+### Тесты
+`python -m unittest discover -s tests` (бот, API, сервер) и `npm install && npm test` (страница в Chromium, API подменён).
+Workflow `tests` гоняет оба набора на каждый push, плюс живую проверку РЖД с серверов GitHub.
 
 ---
 
